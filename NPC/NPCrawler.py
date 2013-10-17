@@ -21,7 +21,10 @@ class Crawler:
             return None
 
     def get_bs(self, url):
-        return BeautifulSoup(self.get_html(url))
+        try:
+            return BeautifulSoup(self.get_html(url))
+        except HTMLParser.HTMLParseError:
+            return None
 
     def get_list_name(self, url):
         wiki_free = url.split('/wiki/').pop()
@@ -98,7 +101,10 @@ class Crawler:
             return {}
         page_soup = self.get_bs(page_url)
         if page_soup is None:
-            return {}
+            # another chance
+            page_soup = self.get_bs(page_url)
+            if page_soup is None:
+                return {}
         [s.extract() for s in page_soup.find_all(class_='thumb')]
         [s.extract() for s in page_soup.find_all(class_='dablink')]
         [s.extract() for s in page_soup.find_all(class_='plainlinks')]
