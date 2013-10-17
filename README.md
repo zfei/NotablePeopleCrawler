@@ -13,7 +13,7 @@ However, one can easily find that wiki pages are surprisingly unstructured/unfri
 Features
 --------------------
 * Automatically crawls people (name + link) in around 180 professions listed in Wikipedia.
-* Tries different combinations of list and item tags for people entries (yes, there are cases where a person is in an <li> wrapped inside a <table>), and determines whether the list is relevant based on sibling headers (they sometimes use <p> as a header).
+* Tries different combinations of list and item tags for people entries (yes, there are cases where a person is in an &lt;li&gt; wrapped inside a &lt;table&gt;), and determines whether the list is relevant based on sibling headers (they sometimes use &lt;p&gt; as a header).
 * Keeps visited links and limits a max depth when crawling.
 
 
