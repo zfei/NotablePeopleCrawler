@@ -14,8 +14,11 @@ class Crawler:
     def get_html(self, url):
         opener = urllib2.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        response = opener.open(self.BASE_URL + url)
-        return response.read()
+        try:
+            response = opener.open(self.BASE_URL + url)
+            return response.read()
+        except (httplib.InvalidURL, urllib2.HTTPError, HTMLParser.HTMLParseError) as e:
+            return None
 
     def get_bs(self, url):
         return BeautifulSoup(self.get_html(url))
@@ -28,6 +31,7 @@ class Crawler:
         return anchor_free.lower()
 
     def fetch_lists(self, entry_url):
+        self.visited_links.add(entry_url)
         soup = self.get_bs(entry_url)
         list_ul = soup.find(class_='mw-content-ltr').ul  # get list of lists
         list_links = {}
@@ -65,14 +69,14 @@ class Crawler:
                 header = list_tag.parent.find_previous_sibling()
             if header and not header.name in ['h2', 'h3', 'p']:
                 continue
-            if header and not header.find(id='External_links'):
+            if header and not header.find(id='External_links') and not header.find(id='References'):
                 for li in list_tag.find_all(item_tag):
                     try:
                         [s.extract() for s in li.find_all('span')]
                         candidate_link = li.a.get('href')
                         if not '/wiki/' in candidate_link:
                             continue
-                        if not 'List_of' in candidate_link:
+                        if not 'List_of' in candidate_link and not header.find(id='See_also'):
                             people[li.a.text] = self.BASE_URL + candidate_link
                         elif not candidate_link in self.list_links.items() + list(self.visited_links):
                             people.update(self.get_people_from_page(candidate_link, depth - 1))
@@ -93,6 +97,8 @@ class Crawler:
         if depth <= 0:
             return {}
         page_soup = self.get_bs(page_url)
+        if page_soup is None:
+            return {}
         [s.extract() for s in page_soup.find_all(class_='thumb')]
         [s.extract() for s in page_soup.find_all(class_='dablink')]
         [s.extract() for s in page_soup.find_all(class_='plainlinks')]
