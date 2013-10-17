@@ -1,0 +1,6 @@
+*.pyc
+*.json
+*.log
+.DS_Store
+get_profiles.py
+count_people.py
