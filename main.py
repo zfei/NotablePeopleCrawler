@@ -1,7 +1,7 @@
 __author__ = 'zfei'
 
 import json, time
-from NPC import NPCrawler
+from npc import NPCrawler
 
 
 def main():
