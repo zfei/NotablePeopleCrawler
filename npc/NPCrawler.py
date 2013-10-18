@@ -1,8 +1,9 @@
 __author__ = 'zfei'
 
 import urllib2
-from bs4 import BeautifulSoup
 import html5lib
+import copy
+from bs4 import BeautifulSoup
 
 
 class Crawler:
@@ -121,7 +122,7 @@ class Crawler:
             page_url = page_url.split('#')[0]
         cache_key = str(depth) + page_url
         if cache_key in self.cached_results:
-            return self.cached_results[cache_key]
+            return copy.deepcopy(self.cached_results[cache_key])
         if depth <= 0:
             return {}
         page_soup = self.get_bs(page_url)
@@ -134,7 +135,7 @@ class Crawler:
                 return {}
         self.remove_irrelevant_tags(page_soup)
         people = self.get_people(page_soup, depth)
-        self.cached_results[cache_key] = people
+        self.cached_results[cache_key] = copy.deepcopy(people)
         return people
 
 
