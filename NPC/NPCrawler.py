@@ -117,6 +117,8 @@ class Crawler:
             self.remove_tags_by_class(page_soup,tag_class)
 
     def get_people_from_page(self, page_url, depth):
+        if '#' in page_url:
+            page_url = page_url.split('#')[0]
         cache_key = str(depth) + page_url
         if cache_key in self.cached_results:
             return self.cached_results[cache_key]
