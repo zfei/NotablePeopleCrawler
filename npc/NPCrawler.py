@@ -81,7 +81,8 @@ class Crawler:
                         candidate_link = li.a.get('href')
                         if not '/wiki/' in candidate_link:
                             continue
-                        if not 'List_of' in candidate_link and not header.find(id='See_also'):
+                        is_another_list = 'List_of' in candidate_link or 'Lists_of' in candidate_link
+                        if not is_another_list and not header.find(id='See_also'):
                             people[li.a.text] = self.BASE_URL + candidate_link
                         # elif not candidate_link in self.list_links.items() + list(self.visited_links):
                         elif not candidate_link in self.list_links.items():
