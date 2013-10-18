@@ -2,13 +2,14 @@ __author__ = 'zfei'
 
 import urllib2
 from bs4 import BeautifulSoup
+import html5lib
 
 
 class Crawler:
     BASE_URL = 'http://en.wikipedia.org'
 
     def __init__(self, entry_url='/wiki/Lists_of_people_by_occupation'):
-        self.visited_links = set()
+        self.cached_results = {}
         self.list_links = self.fetch_lists(entry_url)
 
     def get_html(self, url):
@@ -17,13 +18,13 @@ class Crawler:
         try:
             response = opener.open(self.BASE_URL + url)
             return response.read()
-        except (httplib.InvalidURL, urllib2.HTTPError, HTMLParser.HTMLParseError) as e:
+        except Exception:
             return None
 
     def get_bs(self, url):
         try:
-            return BeautifulSoup(self.get_html(url))
-        except HTMLParser.HTMLParseError:
+            return BeautifulSoup(self.get_html(url), 'html5lib')
+        except Exception:
             return None
 
     def get_list_name(self, url):
@@ -34,7 +35,7 @@ class Crawler:
         return anchor_free.lower()
 
     def fetch_lists(self, entry_url):
-        self.visited_links.add(entry_url)
+        # self.visited_links.add(entry_url)
         soup = self.get_bs(entry_url)
         list_ul = soup.find(class_='mw-content-ltr').ul  # get list of lists
         list_links = {}
@@ -70,7 +71,7 @@ class Crawler:
             header = list_tag.find_previous_sibling()
             if not header:
                 header = list_tag.parent.find_previous_sibling()
-            if header and not header.name in ['h2', 'h3', 'p']:
+            if header and not header.name in ['h2', 'h3', 'p', 'dl']:
                 continue
             if header and not header.find(id='External_links') and not header.find(id='References'):
                 for li in list_tag.find_all(item_tag):
@@ -81,9 +82,10 @@ class Crawler:
                             continue
                         if not 'List_of' in candidate_link and not header.find(id='See_also'):
                             people[li.a.text] = self.BASE_URL + candidate_link
-                        elif not candidate_link in self.list_links.items() + list(self.visited_links):
+                        # elif not candidate_link in self.list_links.items() + list(self.visited_links):
+                        elif not candidate_link in self.list_links.items():
                             people.update(self.get_people_from_page(candidate_link, depth - 1))
-                        self.visited_links.add(candidate_link)
+                        # self.visited_links.add(candidate_link)
                     except AttributeError:
                         pass
         return people
@@ -96,27 +98,44 @@ class Crawler:
         result.update(self.get_people_from_tag(page_soup, 'table', 'tr', depth))
         return result
 
+    def remove_tags_by_class(self, page_soup, class_name):
+        [s.extract() for s in page_soup.find_all(class_=class_name)]
+
+    def remove_irrelevant_tags(self, page_soup):
+        irrelevant_tag_classes = [
+            'thumb',
+            'dablink',
+            'plainlinks',
+            'noprint',
+            'tright',
+            'portal',
+            'rellink',
+            'boilerplate',
+            'seealso'
+        ]
+        for tag_class in irrelevant_tag_classes:
+            self.remove_tags_by_class(page_soup,tag_class)
+
     def get_people_from_page(self, page_url, depth):
+        cache_key = str(depth) + page_url
+        if cache_key in self.cached_results:
+            return self.cached_results[cache_key]
         if depth <= 0:
             return {}
         page_soup = self.get_bs(page_url)
         if page_soup is None:
             # another chance
+            print 'error', page_url,
             page_soup = self.get_bs(page_url)
             if page_soup is None:
+                print 'error again', page_url,
                 return {}
-        [s.extract() for s in page_soup.find_all(class_='thumb')]
-        [s.extract() for s in page_soup.find_all(class_='dablink')]
-        [s.extract() for s in page_soup.find_all(class_='plainlinks')]
+        self.remove_irrelevant_tags(page_soup)
         people = self.get_people(page_soup, depth)
+        self.cached_results[cache_key] = people
         return people
 
 
 if __name__ == '__main__':
     my_crawler = Crawler()
-    # list_links = my_crawler.get_lists()
-    # import pprint
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(list_links)
-    # print len(list_links)
-    print my_crawler.get_people_from_page('/wiki/List_of_electrical_engineers', 3)
+    print len(my_crawler.get_people_from_page('/wiki/Lists_of_scientists', 3).items())
