@@ -141,4 +141,6 @@ class Crawler:
 
 if __name__ == '__main__':
     my_crawler = Crawler()
-    print len(my_crawler.get_people_from_page('/wiki/Lists_of_scientists', 3).items())
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(my_crawler.get_people_from_page('/wiki/List_of_criminal_justice_notables', 3))

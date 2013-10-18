@@ -22,7 +22,7 @@ Usage
 + For immediate use, you can directly download out.json
 + You can modify/customize crawling heuristics to achieve better performance. For reference, please check out main.py and documentation in the module.
 + To use the module, you will need the following dependencies:
-    - BeautifulSoup4 for DOM traversal
+    - BeautifulSoup4 (4.1.2 and above) for DOM traversal
     - Html5lib for parsing HTML
 
 
