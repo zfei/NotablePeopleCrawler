@@ -37,7 +37,7 @@ class Crawler:
     def fetch_lists(self, entry_url):
         # self.visited_links.add(entry_url)
         soup = self.get_bs(entry_url)
-        list_ul = soup.find(class_='mw-content-ltr').ul  # get list of lists
+        list_ul = soup.find(id='mw-content-text').ul  # get list of lists
         list_links = {}
         for li in list_ul.find_all('li'):
             a = li.a
@@ -65,7 +65,7 @@ class Crawler:
         return people
 
     def get_people_from_tag(self, page_soup, list_tag, item_tag, depth):
-        all_lists = page_soup.find(class_='mw-content-ltr').find_all(list_tag)
+        all_lists = page_soup.find(id='mw-content-text').find_all(list_tag)
         people = {}
         for list_tag in all_lists:
             header = list_tag.find_previous_sibling()
